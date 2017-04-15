@@ -1,15 +1,11 @@
 pragma solidity ^0.4.0;
 
 import "./strings.sol";
+import "zeppelin/lifecycle/Killable.sol";
 
-
-contract lms {
-    address owner;
-
+contract LMS is Killable {
     // In order to use the third-party strings library
     using strings for *;
-
-    // event Owner(string name);
 
     enum State {
         Available,
@@ -19,10 +15,7 @@ contract lms {
         Removed
     }
 
-    enum MemberStatus {
-        Active,
-        Inactive
-    }
+    enum MemberStatus { Active, Inactive }
 
     struct Book {
         string title;
@@ -31,50 +24,62 @@ contract lms {
         address owner;
         State state;
         uint lastIssueDate;
-        uint rating;
+        uint8 rating;
     }
 
     struct Member {
         string name;
         address account;
         MemberStatus status;
-        // uint numNewBooks;
-        // mapping (uint => Book) books;
     }
 
-    uint numBooks;
-    uint numMembers;
+    uint public numBooks;
+    uint public numMembers;
     mapping (uint => Book) catalog;
     mapping (uint => Member) members;
 
-    modifier onlyOwner {
-        if (msg.sender != owner)
-            throw;
-        _;
-    }
-
     modifier onlyMember {
+        bool member = false;
         for (uint i=0; i < numMembers; i++) {
             if (msg.sender == members[i].account) {
-                _;
+                member = true;
+                break;
             }
         }
-        throw;
+        if (!member) {
+            throw;
+        } else {
+            _;
+        }
     }
 
-    function lms(string name) {
+    function LMS(string name) {
         owner = msg.sender;
         // Owner is the first member of our library
         members[numMembers++] = Member(name, owner, MemberStatus.Active);
+    }
+
+    function testing(uint8 a1, uint8 a2) constant returns (uint8, uint8) {
+//    function testing(uint8 a1, uint8 a2) constant returns (uint8 b1, uint8 b2) {
+//        b1 = a1;
+//        b2 = a2;
+        return (a1, a2);
     }
 
     function addMember(string name, address account) public onlyOwner {
         members[numMembers++] = Member(name, account, MemberStatus.Active);
     }
 
-    function getOwner() constant returns (string) {
-        // Owner(members[0].name);
-        return members[0].name;
+    function getOwnerDetails() constant returns (string, address, MemberStatus) {
+        return getMemberDetails(owner);
+    }
+
+    function getMemberDetails(address account) constant returns (string, address, MemberStatus) {
+        for (uint i = 0; i < numMembers; i++) {
+            if (members[i].account == account) {
+                return (members[0].name, members[0].account, members[0].status);
+            }
+        }
     }
 
     function addBook(string title, string author, string publisher) public onlyMember {
@@ -119,8 +124,5 @@ contract lms {
         }
     }
 
-    function kill() public onlyOwner{
-        selfdestruct(owner);
-    }
 }
 
