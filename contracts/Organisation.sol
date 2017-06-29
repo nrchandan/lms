@@ -35,7 +35,7 @@ contract Organisation is Ownable {
         // The contract could also be funded after instantiation through sendTransaction.
     }
 
-    function setDataStore(address _bookStore, address _memberStore) onlyOwner {
+    function setDataStore(address _bookStore, address _memberStore) {
         if (_bookStore == 0x0) {
             bookStore = new DataStore();
         } else {
@@ -151,7 +151,7 @@ contract Organisation is Ownable {
         bookStore.rateBook(id, rating, oldRating, comments);
     }
 
-    function kill(address upgradedOrganisation) onlyOwner {
+    function kill(address upgradedOrganisation) {
         if (upgradedOrganisation == 0x0) {
             throw;
         }
